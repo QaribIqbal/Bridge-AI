@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'"
+    />
+    <title>Bridge</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header id="drag">
+      <div class="brand">Bridge</div>
+      <div id="listening" class="listen-badge off" role="status" aria-live="assertive">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="listening-text">Not listening</span>
+      </div>
+      <div class="spacer"></div>
+      <button id="listen-toggle" type="button">Listen</button>
+      <button id="settings-toggle" type="button">Settings</button>
+      <button id="minimize" type="button" aria-label="Minimize">–</button>
+      <button id="close" type="button" aria-label="Close">×</button>
+    </header>
+
+    <p id="banner" class="banner"></p>
+    <p id="audio-status" class="substatus"></p>
+    <p id="local-error" class="error" hidden></p>
+
+    <section id="transcript" aria-label="Transcript"></section>
+
+    <section id="suggestion" aria-live="polite">
+      <h2>Suggested reply <kbd id="suggest-key"></kbd></h2>
+      <p id="suggestion-body">Press the shortcut during a meeting.</p>
+    </section>
+
+    <section id="solution">
+      <div class="solution-head">
+        <h2>On-screen problem <kbd id="capture-key"></kbd></h2>
+        <button id="copy" type="button" hidden>Copy code</button>
+      </div>
+      <p id="solution-explanation">Press the shortcut when a coding problem is on screen.</p>
+      <pre id="solution-code" hidden></pre>
+    </section>
+
+    <section id="settings" hidden>
+      <form id="settings-form">
+        <h2>Settings</h2>
+        <p id="key-status" class="substatus"></p>
+        <label>
+          Gemini model
+          <input id="model" name="model" autocomplete="off" spellcheck="false" />
+        </label>
+        <label>
+          Suggest reply shortcut
+          <input
+            id="suggest-shortcut"
+            name="suggestShortcut"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </label>
+        <label>
+          Screen capture shortcut
+          <input
+            id="capture-shortcut"
+            name="captureShortcut"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </label>
+        <label>
+          Gemini API key
+          <input
+            id="api-key"
+            name="geminiApiKey"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Leave blank to keep the current key"
+          />
+        </label>
+        <p class="hint">
+          Shortcuts use Electron accelerators, for example Ctrl+Shift+Space. Shift alone is not
+          enough, and the two shortcuts must differ. A key typed here is stored in the app data
+          folder, not in the repository. The field is never filled with the saved key.
+        </p>
+        <div class="row">
+          <button type="submit">Save</button>
+          <button id="settings-close" type="button">Close</button>
+        </div>
+        <p id="settings-error" class="error" hidden></p>
+      </form>
+    </section>
+
+    <p id="status" class="status" role="status"></p>
+    <script src="renderer.js"></script>
+  </body>
+</html>
