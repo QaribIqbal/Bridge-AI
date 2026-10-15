@@ -28,7 +28,7 @@ jobs:
       - name: Show Intel log
         if: failure()
         run: |
-          tail -n 40 "$RUNNER_TEMP/builder-x64.log" | while IFS= read -r line; do
+          grep -E '⨯|Error|error|ELIFECYCLE|failed|ENOENT' "$RUNNER_TEMP/builder-x64.log" | head -n 25 | while IFS= read -r line; do
             echo "::error::${line}"
           done
       - name: Package Apple silicon
@@ -39,9 +39,11 @@ jobs:
       - name: Show Apple silicon log
         if: failure()
         run: |
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          tail -n 150 "$RUNNER_TEMP/builder-arm64.log" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$RUNNER_TEMP/builder-arm64.log" ]; then
+            tail -n 40 "$RUNNER_TEMP/builder-arm64.log" | while IFS= read -r line; do
+              echo "::error::${line}"
+            done
+          fi
       - uses: softprops/action-gh-release@v2
         with:
           files: release/*.zip
