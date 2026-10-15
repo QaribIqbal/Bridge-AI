@@ -1,4 +1,4 @@
-import { DEFAULT_MODEL } from './models';
+import { DEFAULT_MODEL, normalizeModel } from './models';
 import {
   DEFAULT_CAPTURE_SHORTCUT,
   DEFAULT_SUGGEST_SHORTCUT,
@@ -30,7 +30,7 @@ export function resolveSettings(
   const geminiApiKey = savedKey || envKey;
   const keySource: KeySource = savedKey ? 'saved' : envKey ? 'env' : 'missing';
   const shortcuts = chooseShortcuts(saved, env);
-  const model = firstText(saved?.model, env.GEMINI_MODEL, DEFAULT_MODEL);
+  const model = normalizeModel(firstText(saved?.model, env.GEMINI_MODEL, DEFAULT_MODEL));
   return {
     geminiApiKey,
     model,
@@ -49,7 +49,12 @@ function chooseShortcuts(
       saved.suggestShortcut ?? DEFAULT_SUGGEST_SHORTCUT,
       saved.captureShortcut ?? DEFAULT_CAPTURE_SHORTCUT,
     );
-    if (savedPair.ok) return { suggest: savedPair.suggest, capture: savedPair.capture };
+    if (savedPair.ok) {
+      if (savedPair.suggest === 'Ctrl+Shift+Space' && savedPair.capture === 'Ctrl+Shift+C') {
+        return { suggest: DEFAULT_SUGGEST_SHORTCUT, capture: DEFAULT_CAPTURE_SHORTCUT };
+      }
+      return { suggest: savedPair.suggest, capture: savedPair.capture };
+    }
   }
   const envPair = validateShortcutPair(
     env.BRIDGE_SUGGEST_SHORTCUT ?? DEFAULT_SUGGEST_SHORTCUT,

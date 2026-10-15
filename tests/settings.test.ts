@@ -10,8 +10,26 @@ describe('settings resolution', () => {
     expect(resolved.keySource).toBe('env');
     expect(DEFAULT_MODEL).toBe('gemini-3.5-flash-lite');
     expect(resolved.model).toBe(DEFAULT_MODEL);
-    expect(resolved.suggestShortcut).toBe('Ctrl+Shift+Space');
-    expect(resolved.captureShortcut).toBe('Ctrl+Shift+C');
+    expect(resolved.suggestShortcut).toBe('CommandOrControl+Shift+Space');
+    expect(resolved.captureShortcut).toBe('CommandOrControl+Shift+C');
+  });
+
+  it('repairs a mistyped model and the old low-quota default', () => {
+    const typo = resolveSettings({}, { model: 'emini-3.5-flash-lite', geminiApiKey: 'saved-key' });
+    const routed = resolveSettings({}, { model: 'gemini-3.6-flash', geminiApiKey: 'saved-key' });
+
+    expect(typo.model).toBe('gemini-3.5-flash-lite');
+    expect(routed.model).toBe('gemini-3.5-flash-lite');
+  });
+
+  it('moves the original Mac shortcuts onto Command', () => {
+    const resolved = resolveSettings(
+      {},
+      { suggestShortcut: 'Ctrl+Shift+Space', captureShortcut: 'Ctrl+Shift+C' },
+    );
+
+    expect(resolved.suggestShortcut).toBe('CommandOrControl+Shift+Space');
+    expect(resolved.captureShortcut).toBe('CommandOrControl+Shift+C');
   });
 
   it('lets a saved key and valid shortcuts override the environment', () => {
@@ -33,7 +51,7 @@ describe('settings resolution', () => {
     expect(resolved.keySource).toBe('saved');
     expect(resolved.suggestShortcut).toBe('Ctrl+Alt+Space');
     expect(resolved.captureShortcut).toBe('Ctrl+Alt+C');
-    expect(resolved.model).toBe('gemini-3.5-flash');
+    expect(resolved.model).toBe('gemini-3.5-flash-lite');
   });
 
   it('falls back when a saved shortcut pair is invalid', () => {

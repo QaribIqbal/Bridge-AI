@@ -18,7 +18,7 @@
         <span id="listening-text">Not listening</span>
       </div>
       <div class="spacer"></div>
-      <button id="listen-toggle" type="button">Listen</button>
+      <button id="listen-toggle" class="primary" type="button">Listen</button>
       <button id="settings-toggle" type="button">Settings</button>
       <button id="minimize" type="button" aria-label="Minimize">–</button>
       <button id="close" type="button" aria-label="Close">×</button>
@@ -33,9 +33,9 @@
     <section id="suggestion" aria-live="polite">
       <h2>
         Suggested reply <kbd id="suggest-key"></kbd>
-        <button id="suggest" type="button">Suggest</button>
+        <button id="suggest" class="primary" type="button">Suggest</button>
       </h2>
-      <p id="suggestion-body">Press the shortcut during a meeting.</p>
+      <p id="suggestion-body" class="reply">Press Suggest when you want a line to say.</p>
     </section>
 
     <section id="solution">
@@ -88,9 +88,8 @@
           />
         </label>
         <p class="hint">
-          Shortcuts use Electron accelerators, for example Ctrl+Shift+Space. Shift alone is not
-          enough, and the two shortcuts must differ. A key typed here is stored in the app data
-          folder, not in the repository. The field is never filled with the saved key.
+          On a Mac, CommandOrControl means the Command key. Leave the key blank to keep the one
+          already saved. It stays on this Mac and is not shown again.
         </p>
         <div class="row">
           <button type="submit">Save</button>

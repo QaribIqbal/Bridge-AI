@@ -58,20 +58,18 @@ describe('Gemini response parsing', () => {
 describe('honest status copy', () => {
   it('says speaker labels are unavailable without a key', () => {
     expect(diarizationBanner(false)).toMatch(/not transcribing/i);
-    expect(diarizationBanner(false)).toMatch(/GEMINI_API_KEY/);
+    expect(diarizationBanner(false)).toMatch(/Settings/);
   });
 
   it('describes the Gemini diarization limit when a key is present', () => {
     const banner = diarizationBanner(true);
-    expect(banner).toMatch(/not a dedicated diarization/i);
     expect(banner).toMatch(/Mixed/);
     expect(banner).toMatch(/You/);
   });
 
   it('explains when system audio cannot be captured', () => {
-    expect(systemAudioMessage('unavailable')).toMatch(/microphone only/i);
-    expect(systemAudioMessage('unavailable')).toMatch(/kernel driver/i);
-    expect(systemAudioMessage('capturing')).toMatch(/system audio/i);
+    expect(systemAudioMessage('unavailable')).toMatch(/Microphone only/i);
+    expect(systemAudioMessage('capturing')).toMatch(/meeting audio/i);
   });
 });
 

@@ -18,6 +18,7 @@ import { validateShortcutPair } from '../shared/shortcuts';
 import type { PublicState, SettingsInput } from '../shared/types';
 
 const smoke = process.argv.includes('--smoke');
+if (smoke) app.setPath('userData', path.join(app.getPath('temp'), 'bridge-smoke'));
 
 app.setName('Bridge');
 
@@ -115,8 +116,8 @@ async function boot(): Promise<void> {
       if (
         bridgeReady !== true ||
         leaked ||
-        state.suggestShortcut !== 'Ctrl+Shift+Space' ||
-        state.captureShortcut !== 'Ctrl+Shift+C' ||
+        state.suggestShortcut !== 'CommandOrControl+Shift+Space' ||
+        state.captureShortcut !== 'CommandOrControl+Shift+C' ||
         !state.banner
       ) {
         console.error('preload did not expose a safe Bridge state');

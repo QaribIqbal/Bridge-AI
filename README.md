@@ -4,14 +4,14 @@ Bridge is a visible, always-on-top meeting assistant. The window stays above oth
 
 ## Mac app
 
-Tagged releases publish unsigned Mac zip files for Apple silicon and Intel. Unzip, right-click `Bridge.app`, and choose Open the first time. macOS blocks unsigned apps until you do that. Then open Settings in the window and paste your Gemini key. The key stays in the app's user-data folder.
+Tagged releases include an Apple silicon zip and an Intel zip. Unzip, then double-click `Open Bridge.command`. That clears the download flag, signs the app on your Mac, and opens it. Paste your Gemini key in Settings the first time. The key stays on this Mac.
 
 ## What it does
 
 - Listens to your microphone and, where the operating system allows it without a custom kernel driver, to system audio.
 - Shows a live transcript. Your microphone is labeled **You** because it is a separate recording. System audio is labeled with speaker names only when Gemini can hear more than one voice in that chunk. Otherwise it stays **Mixed**. Gemini is not a dedicated diarization model, and labels can change between chunks. The window says this while you use it.
-- **Ctrl+Shift+Space** sends the recent transcript to Gemini and shows a spoken reply you could say next.
-- **Ctrl+Shift+C** captures the screen, sends the image plus the recent transcript to Gemini, and, when a coding problem is on screen, shows solution code, a short explanation, and a copy button.
+- **Suggest**, or Command+Shift+Space on a Mac, shows a spoken reply you could say next.
+- **Read screen**, or Command+Shift+C on a Mac, looks at the screen and, for a coding problem, shows solution code and a copy button.
 
 A green **Listening** badge is on whenever the microphone is active.
 

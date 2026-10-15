@@ -49,7 +49,7 @@ function renderTurns(turns: readonly TranscriptTurn[]): void {
   if (turns.length === 0) {
     const empty = document.createElement('p');
     empty.className = 'empty';
-    empty.textContent = 'The transcript shows up here while Bridge is listening.';
+    empty.textContent = 'Press Listen. What you say shows up here.';
     root.append(empty);
     return;
   }
@@ -74,7 +74,7 @@ function renderSolution(next: CodingSolution | null): void {
   const copy = requireElement(copyButton, 'copy');
   if (!next) {
     panel.hidden = false;
-    explanation.textContent = 'Press the shortcut when a coding problem is on screen.';
+    explanation.textContent = 'Press Read screen when a coding problem is visible.';
     code.hidden = true;
     copy.hidden = true;
     code.textContent = '';
@@ -98,12 +98,16 @@ function showLocalError(message: string): void {
 function applyState(state: PublicState): void {
   setListeningIndicator(state.micActive);
   requireElement(banner, 'banner').textContent = state.banner;
-  requireElement(audioStatus, 'audio status').textContent = state.systemAudioDetail;
+  const audio = requireElement(audioStatus, 'audio status');
+  audio.hidden = state.systemAudioDetail.trim().length === 0;
+  audio.textContent = state.systemAudioDetail;
   requireElement(suggestionBody, 'suggestion').textContent =
-    state.suggestion || 'Press the shortcut during a meeting.';
+    state.suggestion || 'Press Suggest when you want a line to say.';
   requireElement(suggestKey, 'suggest key').textContent = state.suggestShortcut;
   requireElement(captureKey, 'capture key').textContent = state.captureShortcut;
-  requireElement(statusLine, 'status').textContent = state.status;
+  const status = requireElement(statusLine, 'status');
+  status.hidden = state.status.trim().length === 0;
+  status.textContent = state.status;
   requireElement(keyStatus, 'key status').textContent = keyLabel(state.keySource);
   renderTurns(state.turns);
   renderSolution(state.solution);

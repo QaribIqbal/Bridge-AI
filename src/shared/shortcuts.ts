@@ -1,5 +1,5 @@
-export const DEFAULT_SUGGEST_SHORTCUT = 'Ctrl+Shift+Space';
-export const DEFAULT_CAPTURE_SHORTCUT = 'Ctrl+Shift+C';
+export const DEFAULT_SUGGEST_SHORTCUT = 'CommandOrControl+Shift+Space';
+export const DEFAULT_CAPTURE_SHORTCUT = 'CommandOrControl+Shift+C';
 
 const MODIFIER_ORDER = [
   'CommandOrControl',

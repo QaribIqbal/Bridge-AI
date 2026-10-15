@@ -8,8 +8,8 @@ import {
 
 describe('shortcut config', () => {
   it('defaults to Ctrl+Shift+Space and Ctrl+Shift+C', () => {
-    expect(DEFAULT_SUGGEST_SHORTCUT).toBe('Ctrl+Shift+Space');
-    expect(DEFAULT_CAPTURE_SHORTCUT).toBe('Ctrl+Shift+C');
+    expect(DEFAULT_SUGGEST_SHORTCUT).toBe('CommandOrControl+Shift+Space');
+    expect(DEFAULT_CAPTURE_SHORTCUT).toBe('CommandOrControl+Shift+C');
   });
 
   it('normalizes modifier aliases and key case', () => {
