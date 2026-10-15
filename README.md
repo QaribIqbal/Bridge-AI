@@ -32,7 +32,7 @@ GEMINI_API_KEY=your-gemini-api-key
 
 `.env` is gitignored. Do not commit it. You can also paste a key into Settings. That copy is stored in the app's user-data folder and is never written into the repository or shown again in the window.
 
-The default model is `gemini-3.5-flash`, which accepts text, audio, and images. Override it with `GEMINI_MODEL` in `.env` or in Settings.
+The default model is `gemini-3.5-flash-lite`, which accepts text, audio, and images and has the larger free-tier quota. `gemini-3.5-flash` is routed to `gemini-3.6-flash`, whose free tier is only a handful of requests. Override the model with `GEMINI_MODEL` in `.env` or in Settings.
 
 ```bash
 npm start

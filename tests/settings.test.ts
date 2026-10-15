@@ -8,7 +8,7 @@ describe('settings resolution', () => {
 
     expect(resolved.geminiApiKey).toBe('env-key');
     expect(resolved.keySource).toBe('env');
-    expect(DEFAULT_MODEL).toBe('gemini-3.5-flash');
+    expect(DEFAULT_MODEL).toBe('gemini-3.5-flash-lite');
     expect(resolved.model).toBe(DEFAULT_MODEL);
     expect(resolved.suggestShortcut).toBe('Ctrl+Shift+Space');
     expect(resolved.captureShortcut).toBe('Ctrl+Shift+C');
