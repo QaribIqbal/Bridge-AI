@@ -1,7 +1,7 @@
 {
   "name": "bridge",
   "productName": "Bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Visible always-on-top meeting assistant",
   "main": "dist/main.js",
