@@ -126,7 +126,6 @@ export class Assistant {
       });
       this.status = '';
     } catch (error) {
-      this.suggestion = '';
       this.status = messageFrom(error, 'Could not write a reply.');
     } finally {
       this.assistBusy = false;
@@ -177,8 +176,7 @@ export class Assistant {
       this.emit();
       return;
     }
-    this.status = 'Transcribing…';
-    this.emit();
+    this.setBackgroundStatus('Transcribing…');
     try {
       const prompt = buildTranscriptionPrompt(chunk.channel);
       const raw = await geminiGenerate({
@@ -207,10 +205,18 @@ export class Assistant {
           diarized: turn.diarized,
         });
       }
-      this.status = labeled.note ?? '';
+      this.setBackgroundStatus(labeled.note ?? '');
     } catch (error) {
-      this.status = messageFrom(error, 'Transcription failed.');
+      const message = messageFrom(error, 'Transcription failed.');
+      // A headerless audio fragment is rejected as an invalid argument. Skip it.
+      this.setBackgroundStatus(/invalid argument/i.test(message) ? '' : message);
     }
+    this.emit();
+  }
+
+  private setBackgroundStatus(next: string): void {
+    if (this.assistBusy) return;
+    this.status = next;
     this.emit();
   }
 

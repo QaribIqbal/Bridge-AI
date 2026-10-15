@@ -5,6 +5,8 @@ export const Ipc = {
   audioChunk: 'audio:chunk',
   systemAudio: 'audio:system-status',
   listening: 'listen:set',
+  suggest: 'assist:suggest',
+  capture: 'assist:capture',
   clipboard: 'clipboard:write',
   windowClose: 'window:close',
   windowMinimize: 'window:minimize',

@@ -18,6 +18,8 @@ const api = {
   reportSystemAudio: (status: 'capturing' | 'unavailable'): Promise<void> =>
     ipcRenderer.invoke(Ipc.systemAudio, status),
   setListening: (listening: boolean): Promise<void> => ipcRenderer.invoke(Ipc.listening, listening),
+  suggestReply: (): Promise<void> => ipcRenderer.invoke(Ipc.suggest),
+  solveFromScreen: (): Promise<void> => ipcRenderer.invoke(Ipc.capture),
   copyText: (text: string): Promise<void> => ipcRenderer.invoke(Ipc.clipboard, text),
   closeWindow: (): Promise<void> => ipcRenderer.invoke(Ipc.windowClose),
   minimizeWindow: (): Promise<void> => ipcRenderer.invoke(Ipc.windowMinimize),

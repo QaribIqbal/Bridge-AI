@@ -74,6 +74,8 @@ async function boot(): Promise<void> {
   ipcMain.handle(Ipc.listening, (_event, listening: unknown) => {
     assistant?.setListening(listening === true);
   });
+  ipcMain.handle(Ipc.suggest, () => assistant?.suggestReply());
+  ipcMain.handle(Ipc.capture, () => assistant?.solveFromScreen());
   ipcMain.handle(Ipc.clipboard, (_event, text: unknown) => {
     if (typeof text === 'string') clipboard.writeText(text.slice(0, 100_000));
   });

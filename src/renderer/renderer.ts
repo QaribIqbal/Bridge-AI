@@ -130,13 +130,30 @@ function recorderFor(stream: MediaStream): MediaRecorder {
   return mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
 }
 
+let recording = false;
+
 function record(stream: MediaStream, channel: 'microphone' | 'system'): void {
-  const recorder = recorderFor(stream);
-  recorder.addEventListener('dataavailable', (event) => {
-    void sendChunk(event.data, channel);
-  });
-  recorder.start(8_000);
-  recorders.push(recorder);
+  const run = (): void => {
+    if (!recording) return;
+    if (!stream.getTracks().some((track) => track.readyState === 'live')) return;
+    const recorder = recorderFor(stream);
+    recorders.push(recorder);
+    recorder.addEventListener('dataavailable', (event) => {
+      void sendChunk(event.data, channel);
+    });
+    recorder.addEventListener('stop', () => {
+      const index = recorders.indexOf(recorder);
+      if (index >= 0) recorders.splice(index, 1);
+      if (recording) run();
+    });
+    // Stop and restart so every blob is a complete file. A timeslice after the
+    // first chunk is only a fragment, and Gemini rejects that as an invalid argument.
+    recorder.start();
+    window.setTimeout(() => {
+      if (recorder.state === 'recording') recorder.stop();
+    }, 8_000);
+  };
+  run();
 }
 
 async function sendChunk(blob: Blob, channel: 'microphone' | 'system'): Promise<void> {
@@ -147,6 +164,7 @@ async function sendChunk(blob: Blob, channel: 'microphone' | 'system'): Promise<
 }
 
 async function startListening(): Promise<void> {
+  recording = true;
   showLocalError('');
   const mic = await navigator.mediaDevices.getUserMedia({
     audio: { echoCancellation: true, noiseSuppression: true },
@@ -185,6 +203,7 @@ async function startSystemAudio(): Promise<void> {
 }
 
 async function stopListening(): Promise<void> {
+  recording = false;
   for (const recorder of recorders) {
     if (recorder.state !== 'inactive') recorder.stop();
   }
@@ -248,6 +267,14 @@ requireElement(settingsForm, 'settings form').addEventListener('submit', (event)
     requireElement(apiKeyInput, 'api key').value = '';
     requireElement(settings, 'settings').hidden = true;
   })();
+});
+
+requireElement(document.querySelector('#suggest'), 'suggest').addEventListener('click', () => {
+  void window.bridge.suggestReply();
+});
+
+requireElement(document.querySelector('#capture'), 'capture').addEventListener('click', () => {
+  void window.bridge.solveFromScreen();
 });
 
 requireElement(copyButton, 'copy').addEventListener('click', () => {
