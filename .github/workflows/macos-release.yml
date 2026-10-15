@@ -28,9 +28,9 @@ jobs:
       - name: Show Intel log
         if: failure()
         run: |
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          tail -n 150 "$RUNNER_TEMP/builder-x64.log" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 40 "$RUNNER_TEMP/builder-x64.log" | while IFS= read -r line; do
+            echo "::error::${line}"
+          done
       - name: Package Apple silicon
         run: npx electron-builder --mac zip --arm64 > "$RUNNER_TEMP/builder-arm64.log" 2>&1
         env:
