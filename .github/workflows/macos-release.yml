@@ -21,7 +21,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Package Intel
-        run: npx electron-builder --mac zip --x64 > "$RUNNER_TEMP/builder-x64.log" 2>&1
+        run: npx electron-builder --mac zip --x64 --publish never > "$RUNNER_TEMP/builder-x64.log" 2>&1
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           DEBUG: electron-builder
@@ -32,7 +32,7 @@ jobs:
             echo "::error::${line}"
           done
       - name: Package Apple silicon
-        run: npx electron-builder --mac zip --arm64 > "$RUNNER_TEMP/builder-arm64.log" 2>&1
+        run: npx electron-builder --mac zip --arm64 --publish never > "$RUNNER_TEMP/builder-arm64.log" 2>&1
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           DEBUG: electron-builder
