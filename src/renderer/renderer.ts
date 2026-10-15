@@ -151,7 +151,7 @@ function record(stream: MediaStream, channel: 'microphone' | 'system'): void {
     recorder.start();
     window.setTimeout(() => {
       if (recorder.state === 'recording') recorder.stop();
-    }, 8_000);
+    }, 5_000);
   };
   run();
 }

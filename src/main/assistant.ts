@@ -11,6 +11,7 @@ import type {
   SystemAudioStatus,
 } from '../shared/types';
 import type { ResolvedSettings } from '../shared/settings';
+import { LatestJobQueue } from './audio-queue';
 import { geminiGenerate, redactSecrets } from './gemini';
 
 const MIN_CHUNK_BYTES = 800;
@@ -35,9 +36,9 @@ export function parseAudioChunk(input: unknown): AudioChunk | null {
 
 export class Assistant {
   private readonly buffer: TranscriptBuffer = createTranscriptBuffer();
-  private readonly tails: Record<Channel, Promise<void>> = {
-    microphone: Promise.resolve(),
-    system: Promise.resolve(),
+  private readonly tails: Record<Channel, LatestJobQueue<AudioChunk>> = {
+    microphone: new LatestJobQueue((chunk) => this.transcribe(chunk)),
+    system: new LatestJobQueue((chunk) => this.transcribe(chunk)),
   };
   private listening = false;
   private systemAudio: SystemAudioStatus = 'idle';
@@ -96,9 +97,7 @@ export class Assistant {
   }
 
   enqueueAudio(chunk: AudioChunk): void {
-    this.tails[chunk.channel] = this.tails[chunk.channel]
-      .then(() => this.transcribe(chunk))
-      .catch(() => undefined);
+    this.tails[chunk.channel].push(chunk);
   }
 
   async suggestReply(): Promise<void> {
@@ -184,6 +183,7 @@ export class Assistant {
         model: this.settings.model,
         system: prompt.system,
         json: true,
+        timeoutMs: 12_000,
         parts: [
           { text: prompt.user },
           {
