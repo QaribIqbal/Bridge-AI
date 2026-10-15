@@ -17,14 +17,31 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: sudo apt-get update && sudo apt-get install -y zip unzip
       - run: npm ci
       - run: npm run build
-      - run: npx electron-builder --mac zip --x64
+      - name: Package Intel
+        run: npx electron-builder --mac zip --x64 > "$RUNNER_TEMP/builder-x64.log" 2>&1
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-      - run: npx electron-builder --mac zip --arm64
+          DEBUG: electron-builder
+      - name: Show Intel log
+        if: failure()
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 150 "$RUNNER_TEMP/builder-x64.log" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Package Apple silicon
+        run: npx electron-builder --mac zip --arm64 > "$RUNNER_TEMP/builder-arm64.log" 2>&1
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          DEBUG: electron-builder
+      - name: Show Apple silicon log
+        if: failure()
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 150 "$RUNNER_TEMP/builder-arm64.log" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
       - uses: softprops/action-gh-release@v2
         with:
           files: release/*.zip
