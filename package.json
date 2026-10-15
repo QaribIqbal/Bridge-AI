@@ -14,7 +14,33 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "verify:gemini": "npm run build && node scripts/verify-gemini.mjs"
+    "verify:gemini": "npm run build && node scripts/verify-gemini.mjs",
+    "dist:mac": "npm run build && electron-builder --mac zip"
+  },
+  "build": {
+    "appId": "com.qarib.bridge",
+    "productName": "Bridge",
+    "asar": true,
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    }
   },
   "engines": {
     "node": ">=22"
@@ -23,6 +49,7 @@
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.5",
     "electron": "^44.7.2",
+    "electron-builder": "^26.0.12",
     "esbuild": "^0.28.2",
     "eslint": "^10.12.0",
     "globals": "^17.13.0",

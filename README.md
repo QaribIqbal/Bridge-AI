@@ -2,6 +2,10 @@
 
 Bridge is a visible, always-on-top meeting assistant. The window stays above other apps, remains in the taskbar or dock, and is included in screen shares, screenshots, and recordings like any other window.
 
+## Mac app
+
+Tagged releases publish unsigned Mac zip files for Apple silicon and Intel. Unzip, right-click `Bridge.app`, and choose Open the first time. macOS blocks unsigned apps until you do that. Then open Settings in the window and paste your Gemini key. The key stays in the app's user-data folder.
+
 ## What it does
 
 - Listens to your microphone and, where the operating system allows it without a custom kernel driver, to system audio.

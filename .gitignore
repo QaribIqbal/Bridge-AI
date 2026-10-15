@@ -6,6 +6,7 @@ coverage/
 .env.*.local
 *.log
 out/
+release/
 .DS_Store
 .vite/
 *.tsbuildinfo
