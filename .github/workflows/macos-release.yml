@@ -10,40 +10,19 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: sudo apt-get update && sudo apt-get install -y zip unzip
       - run: npm ci
       - run: npm run build
-      - name: Package Intel
-        run: npx electron-builder --mac zip --x64 --publish never > "$RUNNER_TEMP/builder-x64.log" 2>&1
+      - name: Package
+        run: npx electron-builder --mac zip --arm64 --x64 --publish never -c.mac.identity=-
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          DEBUG: electron-builder
-      - name: Show Intel log
-        if: failure()
-        run: |
-          grep -E '⨯|Error|error|ELIFECYCLE|failed|ENOENT' "$RUNNER_TEMP/builder-x64.log" | head -n 25 | while IFS= read -r line; do
-            echo "::error::${line}"
-          done
-      - name: Package Apple silicon
-        run: npx electron-builder --mac zip --arm64 --publish never > "$RUNNER_TEMP/builder-arm64.log" 2>&1
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-          DEBUG: electron-builder
-      - name: Show Apple silicon log
-        if: failure()
-        run: |
-          if [ -f "$RUNNER_TEMP/builder-arm64.log" ]; then
-            tail -n 40 "$RUNNER_TEMP/builder-arm64.log" | while IFS= read -r line; do
-              echo "::error::${line}"
-            done
-          fi
       - uses: softprops/action-gh-release@v2
         with:
           files: release/*.zip
