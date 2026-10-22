@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'"
@@ -11,95 +11,106 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header id="drag">
-      <div class="brand">Bridge</div>
-      <div id="listening" class="listen-badge off" role="status" aria-live="assertive">
-        <span class="dot" aria-hidden="true"></span>
-        <span id="listening-text">Not listening</span>
+    <header id="drag" class="toolbar">
+      <div class="toolbar-leading">
+        <div class="brand">Bridge</div>
+        <div id="listening" class="listen-badge off" role="status" aria-live="assertive">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="listening-text">Not listening</span>
+        </div>
       </div>
-      <div class="spacer"></div>
-      <button id="listen-toggle" class="primary" type="button">Listen</button>
-      <button id="settings-toggle" type="button">Settings</button>
-      <button id="minimize" type="button" aria-label="Minimize">–</button>
-      <button id="close" type="button" aria-label="Close">×</button>
+      <div class="toolbar-trailing">
+        <button id="listen-toggle" class="primary" type="button">Listen</button>
+        <button id="settings-toggle" type="button">Settings</button>
+        <div class="window-controls">
+          <button id="minimize" type="button" aria-label="Minimize">–</button>
+          <button id="close" type="button" aria-label="Close">×</button>
+        </div>
+      </div>
     </header>
 
-    <p id="banner" class="banner"></p>
-    <p id="audio-status" class="substatus"></p>
-    <p id="local-error" class="error" hidden></p>
-
-    <section id="transcript" aria-label="Transcript"></section>
-
-    <section id="suggestion" aria-live="polite">
-      <h2>
-        Suggested reply <kbd id="suggest-key"></kbd>
-        <button id="suggest" class="primary" type="button">Suggest</button>
-      </h2>
-      <p id="suggestion-body" class="reply">Press Suggest when you want a line to say.</p>
-    </section>
-
-    <section id="solution">
-      <div class="solution-head">
-        <h2>
-          On-screen problem <kbd id="capture-key"></kbd>
-          <button id="capture" type="button">Read screen</button>
-        </h2>
-        <button id="copy" type="button" hidden>Copy code</button>
+    <main class="safe">
+      <div class="notices">
+        <p id="banner" class="banner"></p>
+        <p id="audio-status" class="substatus"></p>
+        <p id="status" class="status" role="status"></p>
+        <p id="local-error" class="error" hidden></p>
       </div>
-      <p id="solution-explanation">Press the shortcut when a coding problem is on screen.</p>
-      <pre id="solution-code" hidden></pre>
-    </section>
 
-    <section id="settings" hidden>
-      <form id="settings-form">
-        <h2>Settings</h2>
-        <p id="key-status" class="substatus"></p>
-        <label>
-          Gemini model
-          <input id="model" name="model" autocomplete="off" spellcheck="false" />
-        </label>
-        <label>
-          Suggest reply shortcut
-          <input
-            id="suggest-shortcut"
-            name="suggestShortcut"
-            autocomplete="off"
-            spellcheck="false"
-          />
-        </label>
-        <label>
-          Screen capture shortcut
-          <input
-            id="capture-shortcut"
-            name="captureShortcut"
-            autocomplete="off"
-            spellcheck="false"
-          />
-        </label>
-        <label>
-          Gemini API key
-          <input
-            id="api-key"
-            name="geminiApiKey"
-            type="password"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="Leave blank to keep the current key"
-          />
-        </label>
-        <p class="hint">
-          On a Mac, CommandOrControl means the Command key. Leave the key blank to keep the one
-          already saved. It stays on this Mac and is not shown again.
-        </p>
-        <div class="row">
-          <button type="submit">Save</button>
-          <button id="settings-close" type="button">Close</button>
+      <section id="suggestion" class="group" aria-live="polite">
+        <div class="group-head">
+          <h2>Suggested reply <kbd id="suggest-key"></kbd></h2>
+          <button id="suggest" class="primary" type="button">Suggest</button>
         </div>
-        <p id="settings-error" class="error" hidden></p>
-      </form>
-    </section>
+        <p id="suggestion-body" class="reply">Press Suggest when you want a line to say.</p>
+      </section>
 
-    <p id="status" class="status" role="status"></p>
+      <section class="group transcript-wrap" aria-label="Transcript">
+        <h2>Transcript</h2>
+        <div id="transcript">
+          <p class="empty">Press Listen. What you say shows up here.</p>
+        </div>
+      </section>
+
+      <section id="solution" class="group">
+        <div class="group-head">
+          <h2>On-screen problem <kbd id="capture-key"></kbd></h2>
+          <button id="capture" type="button">Read screen</button>
+          <button id="copy" type="button" hidden>Copy code</button>
+        </div>
+        <p id="solution-explanation">Press Read screen when a coding problem is visible.</p>
+        <pre id="solution-code" hidden></pre>
+      </section>
+
+      <section id="settings" class="group" hidden>
+        <form id="settings-form">
+          <h2>Settings</h2>
+          <p id="key-status" class="substatus"></p>
+          <label>
+            Gemini model
+            <input id="model" name="model" autocomplete="off" spellcheck="false" />
+          </label>
+          <label>
+            Suggest reply shortcut
+            <input
+              id="suggest-shortcut"
+              name="suggestShortcut"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+          <label>
+            Screen capture shortcut
+            <input
+              id="capture-shortcut"
+              name="captureShortcut"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+          <label>
+            Gemini API key
+            <input
+              id="api-key"
+              name="geminiApiKey"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Leave blank to keep the current key"
+            />
+          </label>
+          <p class="hint">
+            On a Mac, CommandOrControl means the Command key. Leave the key blank to keep the one
+            already saved. It stays on this Mac and is not shown again.
+          </p>
+          <div class="row">
+            <button class="primary" type="submit">Save</button>
+            <button id="settings-close" type="button">Close</button>
+          </div>
+          <p id="settings-error" class="error" hidden></p>
+        </form>
+      </section>
+    </main>
     <script src="renderer.js"></script>
   </body>
 </html>

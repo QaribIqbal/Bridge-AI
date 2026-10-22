@@ -4,11 +4,11 @@ import { windowPolicy } from '../shared/window-policy';
 // Normal OS window: on top, in the taskbar or dock, and included in screen capture.
 export function createBridgeWindow(preloadPath: string): BrowserWindow {
   const win = new BrowserWindow({
-    width: 440,
+    width: 520,
     height: 760,
     minWidth: 380,
     minHeight: 560,
-    backgroundColor: '#101218',
+    backgroundColor: '#f5f5f7',
     autoHideMenuBar: true,
     title: windowPolicy.title,
     alwaysOnTop: windowPolicy.alwaysOnTop,
