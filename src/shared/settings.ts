@@ -4,39 +4,69 @@ import {
   DEFAULT_SUGGEST_SHORTCUT,
   validateShortcutPair,
 } from './shortcuts';
-import type { KeySource } from './types';
+import { DEFAULT_OPENAI_TRANSCRIBE_MODEL, normalizeOpenAiTranscribeModel } from './stt';
+import type { KeySource, SttEngine } from './types';
 
 export type StoredSettings = {
   geminiApiKey?: string;
+  openaiApiKey?: string;
   model?: string;
+  openaiTranscribeModel?: string;
   suggestShortcut?: string;
   captureShortcut?: string;
 };
 
 export type ResolvedSettings = {
   geminiApiKey: string;
+  openaiApiKey: string;
   model: string;
+  openaiTranscribeModel: string;
   suggestShortcut: string;
   captureShortcut: string;
+  geminiKeySource: KeySource;
+  openaiKeySource: KeySource;
+  /** Gemini key source (suggest / screen / slow STT fallback). */
   keySource: KeySource;
+  sttEngine: SttEngine;
 };
 
 export function resolveSettings(
   env: Record<string, string | undefined>,
   saved: StoredSettings | null,
 ): ResolvedSettings {
-  const savedKey = saved?.geminiApiKey?.trim() ?? '';
-  const envKey = env.GEMINI_API_KEY?.trim() ?? '';
-  const geminiApiKey = savedKey || envKey;
-  const keySource: KeySource = savedKey ? 'saved' : envKey ? 'env' : 'missing';
+  const savedGemini = saved?.geminiApiKey?.trim() ?? '';
+  const envGemini = env.GEMINI_API_KEY?.trim() ?? '';
+  const geminiApiKey = savedGemini || envGemini;
+  const geminiKeySource: KeySource = savedGemini ? 'saved' : envGemini ? 'env' : 'missing';
+
+  const savedOpenAi = saved?.openaiApiKey?.trim() ?? '';
+  const envOpenAi = env.OPENAI_API_KEY?.trim() ?? '';
+  const openaiApiKey = savedOpenAi || envOpenAi;
+  const openaiKeySource: KeySource = savedOpenAi ? 'saved' : envOpenAi ? 'env' : 'missing';
+
   const shortcuts = chooseShortcuts(saved, env);
   const model = normalizeModel(firstText(saved?.model, env.GEMINI_MODEL, DEFAULT_MODEL));
+  const openaiTranscribeModel = normalizeOpenAiTranscribeModel(
+    firstText(
+      saved?.openaiTranscribeModel,
+      env.OPENAI_TRANSCRIBE_MODEL,
+      DEFAULT_OPENAI_TRANSCRIBE_MODEL,
+    ),
+  );
+
+  const sttEngine: SttEngine = openaiApiKey ? 'openai' : geminiApiKey ? 'gemini' : 'none';
+
   return {
     geminiApiKey,
+    openaiApiKey,
     model,
+    openaiTranscribeModel,
     suggestShortcut: shortcuts.suggest,
     captureShortcut: shortcuts.capture,
-    keySource,
+    geminiKeySource,
+    openaiKeySource,
+    keySource: geminiKeySource,
+    sttEngine,
   };
 }
 

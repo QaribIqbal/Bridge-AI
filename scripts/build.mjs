@@ -25,6 +25,12 @@ await build({
 
 await build({
   ...shared,
+  entryPoints: ['src/main/openai-stt.ts'],
+  outfile: 'dist/openai-stt.js',
+});
+
+await build({
+  ...shared,
   entryPoints: ['src/preload/preload.ts'],
   outfile: 'dist/preload.js',
 });

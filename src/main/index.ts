@@ -111,14 +111,18 @@ async function boot(): Promise<void> {
         suggestShortcut?: string;
         captureShortcut?: string;
         banner?: string;
+        engineStatus?: string;
+        sttEngine?: string;
       };
-      const leaked = String(rawState).includes('AIza');
+      const leaked = String(rawState).includes('AIza') || String(rawState).includes('sk-');
       if (
         bridgeReady !== true ||
         leaked ||
         state.suggestShortcut !== 'CommandOrControl+Shift+Space' ||
         state.captureShortcut !== 'CommandOrControl+Shift+C' ||
-        !state.banner
+        !state.banner ||
+        !state.engineStatus ||
+        !state.sttEngine
       ) {
         console.error('preload did not expose a safe Bridge state');
         app.exit(1);
@@ -133,6 +137,7 @@ async function boot(): Promise<void> {
           bridge: true,
           suggestShortcut: state.suggestShortcut,
           captureShortcut: state.captureShortcut,
+          sttEngine: state.sttEngine,
         }),
       );
       app.exit(0);
@@ -206,6 +211,9 @@ function saveSettings(
   };
   if (typeof raw.geminiApiKey === 'string' && raw.geminiApiKey.trim()) {
     stored.geminiApiKey = raw.geminiApiKey.trim();
+  }
+  if (typeof raw.openaiApiKey === 'string' && raw.openaiApiKey.trim()) {
+    stored.openaiApiKey = raw.openaiApiKey.trim();
   }
   writeStoredSettings(stored);
   assistant.setSettings(resolveSettings(env, stored));

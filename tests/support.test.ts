@@ -56,15 +56,21 @@ describe('Gemini response parsing', () => {
 });
 
 describe('honest status copy', () => {
-  it('says speaker labels are unavailable without a key', () => {
-    expect(diarizationBanner(false)).toMatch(/not transcribing/i);
-    expect(diarizationBanner(false)).toMatch(/Settings/);
+  it('says transcription is unavailable without an STT engine', () => {
+    expect(diarizationBanner('none')).toMatch(/not transcribing/i);
+    expect(diarizationBanner('none')).toMatch(/OpenAI/i);
   });
 
-  it('describes the Gemini diarization limit when a key is present', () => {
-    const banner = diarizationBanner(true);
+  it('describes OpenAI live labels when STT is configured', () => {
+    const banner = diarizationBanner('openai');
     expect(banner).toMatch(/Mixed/);
     expect(banner).toMatch(/You/);
+    expect(banner).toMatch(/OpenAI/i);
+  });
+
+  it('warns that the Gemini audio path is slow', () => {
+    expect(diarizationBanner('gemini')).toMatch(/slow/i);
+    expect(diarizationBanner('gemini')).toMatch(/OPENAI_API_KEY/);
   });
 
   it('explains when system audio cannot be captured', () => {

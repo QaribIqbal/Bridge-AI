@@ -4,14 +4,15 @@ Bridge is a visible, always-on-top meeting assistant. The window stays above oth
 
 ## Mac app
 
-Tagged releases include an Apple silicon zip and an Intel zip. Unzip, then double-click `Open Bridge.command`. That clears the download flag, signs the app on your Mac, and opens it. Paste your Gemini key in Settings the first time. The key stays on this Mac.
+Tagged releases include an Apple silicon zip and an Intel zip. Unzip, then double-click `Open Bridge.command`. That clears the download flag, signs the app on your Mac, and opens it. Paste your keys in Settings the first time. Keys stay on this Mac.
 
 ## What it does
 
 - Listens to your microphone and, where the operating system allows it without a custom kernel driver, to system audio.
-- Shows a live transcript. Your microphone is labeled **You** because it is a separate recording. System audio is labeled with speaker names only when Gemini can hear more than one voice in that chunk. Otherwise it stays **Mixed**. Gemini is not a dedicated diarization model, and labels can change between chunks. The window says this while you use it.
-- **Suggest**, or Command+Shift+Space on a Mac, shows a spoken reply you could say next.
-- **Read screen**, or Command+Shift+C on a Mac, looks at the screen and, for a coding problem, shows solution code and a copy button.
+- Shows a near-real-time transcript when `OPENAI_API_KEY` is set. Bridge records short complete webm chunks (~2.5s) and sends each to OpenAI `audio/transcriptions` (`gpt-4o-mini-transcribe` by default). A latest-only queue drops stale chunks so the UI stays on live speech.
+- Labels are honest: microphone → **You**; system audio → **Mixed**. OpenAI STT does not return speakers here. The Gemini audio fallback may report multiple voices in a chunk; otherwise it stays Mixed.
+- **Suggest**, or Command+Shift+Space on a Mac, asks Gemini (text only) for a spoken reply you could say next.
+- **Read screen**, or Command+Shift+C on a Mac, sends a screenshot to Gemini vision and, for a coding problem, shows solution code and a copy button.
 
 A green **Listening** badge is on whenever the microphone is active.
 
@@ -24,15 +25,25 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` and set your own key:
+Edit `.env`:
 
 ```bash
+OPENAI_API_KEY=your-openai-api-key
 GEMINI_API_KEY=your-gemini-api-key
 ```
 
-`.env` is gitignored. Do not commit it. You can also paste a key into Settings. That copy is stored in the app's user-data folder and is never written into the repository or shown again in the window.
+| Key                       | Used for                                                              |
+| ------------------------- | --------------------------------------------------------------------- |
+| `OPENAI_API_KEY`          | Live transcript (`gpt-4o-mini-transcribe` / `whisper-1`)              |
+| `GEMINI_API_KEY`          | Suggest reply + Read screen; slow audio fallback if OpenAI is missing |
+| `OPENAI_TRANSCRIBE_MODEL` | Optional STT model override                                           |
+| `GEMINI_MODEL`            | Optional Gemini model for assist / vision                             |
 
-The default model is `gemini-3.5-flash-lite`, which accepts text, audio, and images and has the larger free-tier quota. `gemini-3.5-flash` is routed to `gemini-3.6-flash`, whose free tier is only a handful of requests. Override the model with `GEMINI_MODEL` in `.env` or in Settings.
+`.env` is gitignored. Do not commit it. You can also paste keys into Settings. That copy is stored in the app's user-data folder and is never written into the repository or shown again in the window.
+
+Without `OPENAI_API_KEY`, Bridge can still transcribe with Gemini audio, but the window warns that path is minutes behind live speech. Prefer OpenAI for meetings.
+
+The default Gemini model is `gemini-3.5-flash-lite`. Override with `GEMINI_MODEL` in `.env` or in Settings.
 
 ```bash
 npm start
@@ -76,12 +87,13 @@ npm run format:check
 npm run smoke
 ```
 
-`npm run verify:gemini` calls the model in `.env` for text, audio, vision, and JSON. It is local only and is not part of CI.
+`npm run verify:gemini` calls the Gemini model in `.env` for text, vision, and JSON. `npm run verify:stt` calls OpenAI transcription when `OPENAI_API_KEY` is set. Both are local only and are not part of CI.
 
 ## Limits
 
-- Without `GEMINI_API_KEY`, Bridge does not transcribe and does not invent speaker labels.
-- A single mixed system-audio stream is labeled **Mixed** unless Gemini reports more than one distinct voice in that chunk.
-- Speaker letters are not stable across chunks.
-- Gemini free-tier quotas and rate limits apply. The window shows the error when a request is rejected.
+- Without `OPENAI_API_KEY` and without `GEMINI_API_KEY`, Bridge does not transcribe.
+- Gemini-only transcription is a slow fallback; the UI says so.
+- A single mixed system-audio stream is labeled **Mixed** unless a model reports more than one distinct voice in that chunk (Gemini fallback only).
+- Speaker letters from the Gemini fallback are not stable across chunks.
+- OpenAI and Gemini quotas and rate limits apply. The window shows the error when a request is rejected.
 - The assistant window can appear in its own screen capture. The vision prompt tells the model to ignore a window named Bridge.

@@ -51,7 +51,7 @@ export function labelSpeakerTurns(
     }
     return {
       diarized: true,
-      note: 'Gemini heard more than one voice on the microphone in this chunk.',
+      note: 'More than one voice was reported on the microphone in this chunk.',
       turns: turns.map((turn) => ({
         speaker:
           turn.speaker.toLowerCase() === 'you' ? 'You' : `Mic · ${turn.speaker || 'Unknown'}`,
@@ -64,7 +64,7 @@ export function labelSpeakerTurns(
   if (!separated) {
     return {
       diarized: false,
-      note: 'System audio is one mixed stream. Gemini could not separate speakers in this chunk, so it stays Mixed.',
+      note: 'System audio is one mixed stream. Speakers were not separated in this chunk, so it stays Mixed.',
       turns: [
         {
           speaker: 'Mixed',
@@ -77,7 +77,7 @@ export function labelSpeakerTurns(
 
   return {
     diarized: true,
-    note: 'Speaker labels apply to this chunk only. Gemini may use different letters on the next chunk.',
+    note: 'Speaker labels apply to this chunk only. Letters may change on the next chunk.',
     turns: turns.map((turn) => ({
       speaker: formatSystemSpeaker(turn.speaker),
       text: turn.text,

@@ -1,7 +1,7 @@
 import { createTranscriptBuffer, type TranscriptBuffer } from '../shared/transcript-buffer';
 import { buildCodingPrompt, buildSuggestReplyPrompt, parseCodingResponse } from '../shared/prompts';
 import { labelSpeakerTurns } from '../shared/speaker-labels';
-import { diarizationBanner, systemAudioMessage } from '../shared/status-copy';
+import { diarizationBanner, engineStatusLine, systemAudioMessage } from '../shared/status-copy';
 import { buildTranscriptionPrompt, parseTranscriptionResponse } from '../shared/transcription';
 import type {
   AudioChunk,
@@ -13,6 +13,7 @@ import type {
 import type { ResolvedSettings } from '../shared/settings';
 import { LatestJobQueue } from './audio-queue';
 import { geminiGenerate, redactSecrets } from './gemini';
+import { openaiTranscribe, redactOpenAiSecrets } from './openai-stt';
 
 const MIN_CHUNK_BYTES = 800;
 const MAX_CHUNK_BYTES = 8_000_000;
@@ -57,20 +58,30 @@ export class Assistant {
   ) {}
 
   snapshot(): PublicState {
-    const hasKey = this.settings.geminiApiKey.length > 0;
     return {
       listening: this.listening,
       micActive: this.listening,
       systemAudio: this.systemAudio,
-      keySource: this.settings.keySource,
+      keySource: this.settings.geminiKeySource,
+      geminiKeySource: this.settings.geminiKeySource,
+      openaiKeySource: this.settings.openaiKeySource,
+      sttEngine: this.settings.sttEngine,
       model: this.settings.model,
+      openaiTranscribeModel: this.settings.openaiTranscribeModel,
       suggestShortcut: this.settings.suggestShortcut,
       captureShortcut: this.settings.captureShortcut,
       turns: [...this.buffer.all()],
       suggestion: this.suggestion,
       solution: this.solution,
       status: [this.shortcutWarning, this.status].filter(Boolean).join(' '),
-      banner: diarizationBanner(hasKey),
+      banner: diarizationBanner(this.settings.sttEngine),
+      engineStatus: engineStatusLine({
+        sttEngine: this.settings.sttEngine,
+        openaiKeySource: this.settings.openaiKeySource,
+        geminiKeySource: this.settings.geminiKeySource,
+        model: this.settings.model,
+        openaiTranscribeModel: this.settings.openaiTranscribeModel,
+      }),
       systemAudioDetail: systemAudioMessage(this.listening ? this.systemAudio : 'idle'),
     };
   }
@@ -121,6 +132,7 @@ export class Assistant {
         apiKey: this.settings.geminiApiKey,
         model: this.settings.model,
         system: prompt.system,
+        timeoutMs: 12_000,
         parts: [{ text: prompt.user }],
       });
       this.status = '';
@@ -154,6 +166,7 @@ export class Assistant {
         model: this.settings.model,
         system: prompt.system,
         json: true,
+        timeoutMs: 20_000,
         parts: [
           { text: prompt.user },
           { inlineData: { mimeType: 'image/png', data: png.toString('base64') } },
@@ -170,48 +183,84 @@ export class Assistant {
   }
 
   private async transcribe(chunk: AudioChunk): Promise<void> {
-    if (!this.settings.geminiApiKey) {
-      this.status = 'Add GEMINI_API_KEY to .env to transcribe.';
+    if (this.settings.sttEngine === 'none') {
+      this.status =
+        'Add OPENAI_API_KEY for fast transcription, or GEMINI_API_KEY as a slow fallback.';
       this.emit();
       return;
     }
-    this.setBackgroundStatus('Transcribing…');
+    this.setBackgroundStatus(
+      this.settings.sttEngine === 'openai' ? 'Transcribing…' : 'Transcribing (slow Gemini path)…',
+    );
     try {
-      const prompt = buildTranscriptionPrompt(chunk.channel);
-      const raw = await geminiGenerate({
-        apiKey: this.settings.geminiApiKey,
-        model: this.settings.model,
-        system: prompt.system,
-        json: true,
-        timeoutMs: 12_000,
-        parts: [
-          { text: prompt.user },
-          {
-            inlineData: {
-              mimeType: chunk.mimeType,
-              data: Buffer.from(chunk.data).toString('base64'),
-            },
-          },
-        ],
-      });
-      const parsed = parseTranscriptionResponse(raw);
-      const labeled = labelSpeakerTurns(chunk.channel, parsed);
-      for (const turn of labeled.turns) {
-        this.buffer.append({
-          speaker: turn.speaker,
-          channel: chunk.channel,
-          text: turn.text,
-          atMs: chunk.atMs,
-          diarized: turn.diarized,
-        });
+      if (this.settings.sttEngine === 'openai') {
+        await this.transcribeWithOpenAi(chunk);
+      } else {
+        await this.transcribeWithGemini(chunk);
       }
-      this.setBackgroundStatus(labeled.note ?? '');
+      this.setBackgroundStatus('');
     } catch (error) {
       const message = messageFrom(error, 'Transcription failed.');
       // A headerless audio fragment is rejected as an invalid argument. Skip it.
       this.setBackgroundStatus(/invalid argument/i.test(message) ? '' : message);
     }
     this.emit();
+  }
+
+  private async transcribeWithOpenAi(chunk: AudioChunk): Promise<void> {
+    const text = await openaiTranscribe({
+      apiKey: this.settings.openaiApiKey,
+      model: this.settings.openaiTranscribeModel,
+      mimeType: chunk.mimeType,
+      data: chunk.data,
+      timeoutMs: 10_000,
+    });
+    // Honest labels only: dedicated STT does not return speaker IDs here.
+    const labeled = labelSpeakerTurns(chunk.channel, {
+      diarized: false,
+      turns: [{ speaker: '', text }],
+    });
+    for (const turn of labeled.turns) {
+      this.buffer.append({
+        speaker: turn.speaker,
+        channel: chunk.channel,
+        text: turn.text,
+        atMs: chunk.atMs,
+        diarized: turn.diarized,
+      });
+    }
+  }
+
+  private async transcribeWithGemini(chunk: AudioChunk): Promise<void> {
+    const prompt = buildTranscriptionPrompt(chunk.channel);
+    const raw = await geminiGenerate({
+      apiKey: this.settings.geminiApiKey,
+      model: this.settings.model,
+      system: prompt.system,
+      json: true,
+      timeoutMs: 12_000,
+      parts: [
+        { text: prompt.user },
+        {
+          inlineData: {
+            mimeType: chunk.mimeType,
+            data: Buffer.from(chunk.data).toString('base64'),
+          },
+        },
+      ],
+    });
+    const parsed = parseTranscriptionResponse(raw);
+    const labeled = labelSpeakerTurns(chunk.channel, parsed);
+    for (const turn of labeled.turns) {
+      this.buffer.append({
+        speaker: turn.speaker,
+        channel: chunk.channel,
+        text: turn.text,
+        atMs: chunk.atMs,
+        diarized: turn.diarized,
+      });
+    }
+    if (labeled.note) this.setBackgroundStatus(labeled.note);
   }
 
   private setBackgroundStatus(next: string): void {
@@ -233,5 +282,5 @@ function asBytes(value: unknown): Uint8Array | null {
 
 function messageFrom(error: unknown, fallback: string): string {
   const message = error instanceof Error && error.message ? error.message : fallback;
-  return redactSecrets(message);
+  return redactOpenAiSecrets(redactSecrets(message));
 }

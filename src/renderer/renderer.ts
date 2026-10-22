@@ -1,3 +1,4 @@
+import { AUDIO_CHUNK_MS } from '../shared/chunking';
 import type { CodingSolution, PublicState, TranscriptTurn } from '../shared/types';
 
 const listeningText = document.querySelector<HTMLElement>('#listening-text');
@@ -19,10 +20,12 @@ const settings = document.querySelector<HTMLElement>('#settings');
 const settingsForm = document.querySelector<HTMLFormElement>('#settings-form');
 const settingsError = document.querySelector<HTMLElement>('#settings-error');
 const keyStatus = document.querySelector<HTMLElement>('#key-status');
+const engineStatus = document.querySelector<HTMLElement>('#engine-status');
 const modelInput = document.querySelector<HTMLInputElement>('#model');
 const suggestInput = document.querySelector<HTMLInputElement>('#suggest-shortcut');
 const captureInput = document.querySelector<HTMLInputElement>('#capture-shortcut');
 const apiKeyInput = document.querySelector<HTMLInputElement>('#api-key');
+const openaiKeyInput = document.querySelector<HTMLInputElement>('#openai-key');
 
 let micStream: MediaStream | null = null;
 let systemStream: MediaStream | null = null;
@@ -108,7 +111,8 @@ function applyState(state: PublicState): void {
   const status = requireElement(statusLine, 'status');
   status.hidden = state.status.trim().length === 0;
   status.textContent = state.status;
-  requireElement(keyStatus, 'key status').textContent = keyLabel(state.keySource);
+  requireElement(keyStatus, 'key status').textContent = keyLabel(state);
+  requireElement(engineStatus, 'engine status').textContent = state.engineStatus;
   renderTurns(state.turns);
   renderSolution(state.solution);
   if (document.activeElement !== modelInput) {
@@ -122,10 +126,26 @@ function applyState(state: PublicState): void {
   }
 }
 
-function keyLabel(source: PublicState['keySource']): string {
-  if (source === 'env') return 'API key: loaded from .env. It is not shown here.';
-  if (source === 'saved') return 'API key: saved in app data. It is not shown here.';
-  return 'API key: missing. Add GEMINI_API_KEY to .env.';
+function keyLabel(state: PublicState): string {
+  const openai =
+    state.openaiKeySource === 'env'
+      ? 'OpenAI key from .env'
+      : state.openaiKeySource === 'saved'
+        ? 'OpenAI key saved in app data'
+        : 'OpenAI key missing';
+  const gemini =
+    state.geminiKeySource === 'env'
+      ? 'Gemini key from .env'
+      : state.geminiKeySource === 'saved'
+        ? 'Gemini key saved in app data'
+        : 'Gemini key missing';
+  if (state.sttEngine === 'openai') {
+    return `${openai}. ${gemini}. Transcript uses OpenAI; Suggest / Read screen use Gemini. Keys are not shown here.`;
+  }
+  if (state.sttEngine === 'gemini') {
+    return `${openai}. ${gemini}. Transcript is on the slow Gemini path until you add OPENAI_API_KEY.`;
+  }
+  return `${openai}. ${gemini}. Add OPENAI_API_KEY for live transcription.`;
 }
 
 function recorderFor(stream: MediaStream): MediaRecorder {
@@ -155,7 +175,7 @@ function record(stream: MediaStream, channel: 'microphone' | 'system'): void {
     recorder.start();
     window.setTimeout(() => {
       if (recorder.state === 'recording') recorder.stop();
-    }, 5_000);
+    }, AUDIO_CHUNK_MS);
   };
   run();
 }
@@ -260,6 +280,7 @@ requireElement(settingsForm, 'settings form').addEventListener('submit', (event)
       suggestShortcut: requireElement(suggestInput, 'suggest').value,
       captureShortcut: requireElement(captureInput, 'capture').value,
       geminiApiKey: requireElement(apiKeyInput, 'api key').value,
+      openaiApiKey: requireElement(openaiKeyInput, 'openai key').value,
     });
     const error = requireElement(settingsError, 'settings error');
     if (!result.ok) {
@@ -269,6 +290,7 @@ requireElement(settingsForm, 'settings form').addEventListener('submit', (event)
     }
     error.hidden = true;
     requireElement(apiKeyInput, 'api key').value = '';
+    requireElement(openaiKeyInput, 'openai key').value = '';
     requireElement(settings, 'settings').hidden = true;
   })();
 });

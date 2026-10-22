@@ -38,7 +38,7 @@ describe('speaker labels', () => {
     expect(result.turns).toEqual([
       { speaker: 'Mixed', text: 'Can you hear me the slide is up', diarized: false },
     ]);
-    expect(result.note).toMatch(/not separate speakers/i);
+    expect(result.note).toMatch(/not separated/i);
   });
 
   it('does not invent speakers when Gemini marks a system chunk diarized but names one voice', () => {

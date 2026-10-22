@@ -65,7 +65,30 @@
       <section id="settings" class="group" hidden>
         <form id="settings-form">
           <h2>Settings</h2>
+          <p id="engine-status" class="substatus"></p>
           <p id="key-status" class="substatus"></p>
+          <label>
+            OpenAI API key (live transcript)
+            <input
+              id="openai-key"
+              name="openaiApiKey"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Leave blank to keep the current key"
+            />
+          </label>
+          <label>
+            Gemini API key (Suggest / Read screen)
+            <input
+              id="api-key"
+              name="geminiApiKey"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Leave blank to keep the current key"
+            />
+          </label>
           <label>
             Gemini model
             <input id="model" name="model" autocomplete="off" spellcheck="false" />
@@ -88,20 +111,10 @@
               spellcheck="false"
             />
           </label>
-          <label>
-            Gemini API key
-            <input
-              id="api-key"
-              name="geminiApiKey"
-              type="password"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="Leave blank to keep the current key"
-            />
-          </label>
           <p class="hint">
-            On a Mac, CommandOrControl means the Command key. Leave the key blank to keep the one
-            already saved. It stays on this Mac and is not shown again.
+            OpenAI powers near-real-time transcription. Gemini powers Suggest and Read screen. On a
+            Mac, CommandOrControl means the Command key. Leave a key blank to keep the one already
+            saved. Keys stay on this Mac and are not shown again.
           </p>
           <div class="row">
             <button class="primary" type="submit">Save</button>

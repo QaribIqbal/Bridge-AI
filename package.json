@@ -1,7 +1,7 @@
 {
   "name": "bridge",
   "productName": "Bridge",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Visible always-on-top meeting assistant",
   "author": "Qarib Iqbal",
@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "verify:gemini": "npm run build && node scripts/verify-gemini.mjs",
+    "verify:stt": "npm run build && node scripts/verify-stt.mjs",
     "dist:mac": "npm run build && electron-builder --mac zip"
   },
   "build": {
